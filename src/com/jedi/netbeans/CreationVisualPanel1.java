@@ -5,35 +5,34 @@
  */
 package com.jedi.netbeans;
 
-import com.jedi.database.model.DatabaseObject;
-import com.jedi.ui.DatabaseObjectTree.DatabaseObjectTreeModel;
+import com.jedi.metadata.DatabaseMetadataUtil;
+import com.jedi.metadata.PackageMetadata;
+import com.jedi.metadata.ProcedureMetadata;
+import com.sun.org.apache.bcel.internal.generic.StoreInstruction;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
+import org.jdesktop.swingx.autocomplete.ComboBoxCellEditor;
 import org.netbeans.api.db.explorer.ConnectionManager;
 import org.netbeans.api.db.explorer.DatabaseConnection;
+import org.openide.util.Exceptions;
 
 public final class CreationVisualPanel1 extends JPanel {
 
     ConnectionManager connectionManager = new ConnectionManager();
 
-    public void update() {
-        
-        DatabaseObject root = new DatabaseObject();
-        root.setName("Root");
-        
-        DatabaseObject item1 = new DatabaseObject();
-        item1.setName("Item 1");
-        root.addChild(item1);
-        
-        DatabaseObject item2 = new DatabaseObject();
-        item2.setName("Item 2");
-        root.addChild(item2);
-        
-        
-        DatabaseObjectTreeModel model=new DatabaseObjectTreeModel(root);
-        databaseObjectTree.setModel(model);
-        
+    public void updateView() {
+
     }
 
     /**
@@ -41,7 +40,39 @@ public final class CreationVisualPanel1 extends JPanel {
      */
     public CreationVisualPanel1() {
         initComponents();
-        update();
+        comboPackages.setModel(new DefaultComboBoxModel());
+        listProcedure.setModel(new DefaultListModel());
+        
+        
+        AutoCompleteDecorator.decorate(comboPackages);
+        ComboBoxCellEditor editor = new ComboBoxCellEditor(comboPackages);
+        CellEditorListener listener = new CellEditorListener() {
+            @Override
+            public void editingStopped(ChangeEvent e) {
+                final Object item = comboPackages.getSelectedItem();
+                if (item != null && (item instanceof PackageMetadata)) {
+                    comboPackages.setEditable(false);
+                    listProcedure.setEnabled(false);
+                    listProcedure.setModel(new DefaultListModel());
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            showProcedures((PackageMetadata) item);
+                        }
+                    });
+                    comboPackages.setEditable(true);
+                    listProcedure.setEnabled(true);
+                }
+            }
+
+            @Override
+            public void editingCanceled(ChangeEvent e) {
+
+            }
+        };
+
+        editor.addCellEditorListener(listener);
+
     }
 
     @Override
@@ -49,8 +80,47 @@ public final class CreationVisualPanel1 extends JPanel {
         return "Choose the stored procedure";
     }
 
+    private void showProcedures(PackageMetadata packageMetadata) {
+        Connection connection = getConnection();
+        try {
+            List<ProcedureMetadata> list = DatabaseMetadataUtil.getProcedures(connection, packageMetadata);
+            if (list != null && !list.isEmpty()) {
+                DefaultListModel model = new DefaultListModel();
+                for (ProcedureMetadata procedureMetadata : list) {
+                    model.addElement(procedureMetadata);
+                }
+
+                listProcedure.setModel(model);
+                listProcedure.setSelectedIndex(0);
+            }
+
+        } catch (SQLException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+    }
+
     private ComboBoxModel getAvailableConnections() {
         return new DefaultComboBoxModel(connectionManager.getConnections());
+    }
+
+    private ComboBoxModel getAvailablePackages(Connection connection) throws SQLException {
+        ComboBoxModel result = null;
+        List<PackageMetadata> list = DatabaseMetadataUtil.getPackages(connection);
+        if (list != null && !list.isEmpty()) {
+            result = new DefaultComboBoxModel(list.toArray());
+        }
+
+        return result;
+    }
+
+    private Connection getConnection() {
+        Connection result = null;
+        Object item = comboConnections.getSelectedItem();
+        if (item != null && item instanceof DatabaseConnection) {
+            DatabaseConnection dc = (DatabaseConnection) item;
+            result = dc.getJDBCConnection();
+        }
+        return result;
     }
 
     /**
@@ -69,19 +139,18 @@ public final class CreationVisualPanel1 extends JPanel {
         jLabel1 = new javax.swing.JLabel();
         comboConnections = new javax.swing.JComboBox();
         jLabel3 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
+        textSearch = new javax.swing.JTextField();
+        comboPackages = new javax.swing.JComboBox();
         jScrollPane1 = new javax.swing.JScrollPane();
-        databaseObjectTree = new com.jedi.ui.DatabaseObjectTree();
+        listProcedure = new javax.swing.JList();
 
         setPreferredSize(new java.awt.Dimension(662, 472));
 
         org.openide.awt.Mnemonics.setLocalizedText(connectButton, org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.connectButton.text")); // NOI18N
-        connectButton.setEnabled(false);
         connectButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                connectButtonconnect(evt);
+                connect(evt);
             }
         });
 
@@ -99,19 +168,24 @@ public final class CreationVisualPanel1 extends JPanel {
         comboConnections.setModel(getAvailableConnections());
         comboConnections.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboConnectionschoseConnection(evt);
+                choseConnection(evt);
             }
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.jLabel3.text")); // NOI18N
 
-        jTextField1.setText(org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.jTextField1.text")); // NOI18N
-
         org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.jLabel4.text")); // NOI18N
 
-        jTextField2.setText(org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.jTextField2.text")); // NOI18N
+        textSearch.setText(org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.textSearch.text")); // NOI18N
 
-        jScrollPane1.setViewportView(databaseObjectTree);
+        comboPackages.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
+        listProcedure.setModel(new javax.swing.AbstractListModel() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        jScrollPane1.setViewportView(listProcedure);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -122,7 +196,7 @@ public final class CreationVisualPanel1 extends JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel2)
-                        .addGap(23, 33, Short.MAX_VALUE))
+                        .addGap(23, 173, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
@@ -138,8 +212,8 @@ public final class CreationVisualPanel1 extends JPanel {
                                     .addComponent(jLabel4))
                                 .addGap(18, 18, 18)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jTextField2)
-                                    .addComponent(jTextField1)))
+                                    .addComponent(textSearch)
+                                    .addComponent(comboPackages, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(connectButton)
@@ -165,26 +239,60 @@ public final class CreationVisualPanel1 extends JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(comboPackages, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(textSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 310, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 305, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void connectButtonconnect(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonconnect
-        DatabaseConnection sc = (DatabaseConnection) comboConnections.getSelectedItem();
-        if (sc != null) {
-            connectionManager.showConnectionDialog(sc);
+    private void connect(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connect
+        try {
+            comboPackages.setEnabled(false);
+            comboConnections.setEnabled(false);
+            connectButton.setEnabled(false);
+            newConnectionButton.setEnabled(false);
+            textSearch.setEnabled(false);
+            listProcedure.setEnabled(false);
+
+            DatabaseConnection sc = (DatabaseConnection) comboConnections.getSelectedItem();
+            if (sc != null) {
+                connectionManager.showConnectionDialog(sc);
+            }
+
+            final Connection connection = getConnection();
+            SwingUtilities.invokeLater(new Runnable() {
+
+                @Override
+                public void run() {
+                    ComboBoxModel model = null;
+                    try {
+                        model = getAvailablePackages(connection);
+                    } catch (SQLException ex) {
+                        Exceptions.printStackTrace(ex);
+                    }
+                    comboPackages.setModel(model);
+                }
+            });
+        } catch (Exception e) {
+            Exceptions.printStackTrace(e);
+        } finally {
+            comboPackages.setEnabled(true);
+            comboConnections.setEnabled(true);
+            newConnectionButton.setEnabled(true);
+            textSearch.setEnabled(true);
+            listProcedure.setEnabled(true);
+
         }
 
-    }//GEN-LAST:event_connectButtonconnect
+
+    }//GEN-LAST:event_connect
 
     private void newConnectionButtoncreateNewConnection(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newConnectionButtoncreateNewConnection
         connectionManager.showAddConnectionDialog(null);
@@ -192,14 +300,14 @@ public final class CreationVisualPanel1 extends JPanel {
 
     }//GEN-LAST:event_newConnectionButtoncreateNewConnection
 
-    private void comboConnectionschoseConnection(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboConnectionschoseConnection
-
-    }//GEN-LAST:event_comboConnectionschoseConnection
+    private void choseConnection(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_choseConnection
+        connectButton.setEnabled(true);
+    }//GEN-LAST:event_choseConnection
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox comboConnections;
+    private javax.swing.JComboBox comboPackages;
     private javax.swing.JButton connectButton;
-    private com.jedi.ui.DatabaseObjectTree databaseObjectTree;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -207,8 +315,8 @@ public final class CreationVisualPanel1 extends JPanel {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
+    private javax.swing.JList listProcedure;
     private javax.swing.JButton newConnectionButton;
+    private javax.swing.JTextField textSearch;
     // End of variables declaration//GEN-END:variables
 }

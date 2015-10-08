@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.jedi.database.model;
+package com.jedi.metadata;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,28 +12,38 @@ import java.util.List;
  *
  * @author umit
  */
-public class DatabaseObject {
-
-    private List<DatabaseObject> children;
+public abstract class AbstractMetadata implements Metadata{
+    private List<Metadata> children;
     private String name;
 
-    public List<DatabaseObject> getChildren() {
+    @Override
+    public List<Metadata> getChildren() {
         return children;
     }
 
+    @Override
     public String getName() {
         return this.name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
 
-    public void addChild(DatabaseObject child) {
+    @Override
+    public void addChild(Metadata child) {
         if (children == null) {
-            children = new ArrayList<DatabaseObject>();
+            children = new ArrayList<Metadata>();
         }
 
         children.add(child);
     }
+
+    @Override
+    public String toString() {
+        return this.name;
+    }
+    
+    
 }
