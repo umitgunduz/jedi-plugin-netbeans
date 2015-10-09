@@ -9,37 +9,37 @@ import java.awt.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.swing.JComponent;
 import javax.swing.event.ChangeListener;
+import org.netbeans.api.java.project.JavaProjectConstants;
+import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectUtils;
+import org.netbeans.api.project.SourceGroup;
+import org.netbeans.api.project.Sources;
 import org.netbeans.api.templates.TemplateRegistration;
 import org.netbeans.api.templates.TemplateRegistrations;
+import org.netbeans.spi.java.project.support.ui.templates.JavaTemplates;
+import org.netbeans.spi.project.ui.templates.support.Templates;
 import org.openide.WizardDescriptor;
 import org.openide.util.NbBundle;
+import org.openide.filesystems.FileObject;
+import org.openide.loaders.DataFolder;
+import org.openide.loaders.DataObject;
 
 @TemplateRegistrations({
- 
     @TemplateRegistration(folder = "Classes",
-    displayName = "#StoredProcedure_displayName",
-    content = "StoredProcedure.java.template",
-    description="StoredProcedureDescription.html",
-    position=10,
-    scriptEngine = "freemarker"),
- 
-    @TemplateRegistration(folder = "Classes",
-    displayName = "#StoredFunction_displayName",
-    content = "StoredFunction.java.template",
-    description="StoredFunctionDescription.html",
-    position=15,
-    scriptEngine = "freemarker")
- 
-})
+            displayName = "#Procedure_displayName",
+            content = "Procedure.java.template",
+            description = "ProcedureDescription.html",
+            position = 1,
+            scriptEngine = "freemarker")})
 
-@NbBundle.Messages({
-    "StoredProcedure_displayName=Stored Procedure Wrapper from Database",
-    "StoredFunction_displayName=Stored Function Wrapper from Database"})
+@NbBundle.Messages({"Procedure_displayName=Procedure & Function Wrapper from Database"})
 public final class CreationWizardIterator implements WizardDescriptor.InstantiatingIterator<WizardDescriptor> {
 
     private int index;
@@ -48,10 +48,14 @@ public final class CreationWizardIterator implements WizardDescriptor.Instantiat
     private List<WizardDescriptor.Panel<WizardDescriptor>> panels;
 
     private List<WizardDescriptor.Panel<WizardDescriptor>> getPanels() {
+        Project p = Templates.getProject(wizard);
+        Sources sources = ProjectUtils.getSources(p);
+        SourceGroup sg[] = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
+
         if (panels == null) {
             panels = new ArrayList<WizardDescriptor.Panel<WizardDescriptor>>();
             panels.add(new CreationWizardPanel1());
-            panels.add(new CreationWizardPanel2());
+            panels.add(JavaTemplates.createPackageChooser(p, sg, null, true));
             panels.add(new CreationWizardPanel3());
             panels.add(new CreationWizardPanel4());
             panels.add(new CreationWizardPanel5());
@@ -79,13 +83,24 @@ public final class CreationWizardIterator implements WizardDescriptor.Instantiat
 
     @Override
     public Set<?> instantiate() throws IOException {
-        // TODO return set of FileObject (or DataObject) you have created
+        /*
+        Map args = new HashMap();
+        FileObject template;
+        template = Templates.getTemplate(wizard);
+        DataObject dataObject = DataObject.find(template);
+        FileObject dir = Templates.getTargetFolder(wizard);
+        DataFolder df = DataFolder.findFolder(dir);
+        String targetName = Templates.getTargetName(wizard);
+        dataObject.createFromTemplate(df, targetName, args);
+        */
         return Collections.emptySet();
     }
 
     @Override
     public void initialize(WizardDescriptor wizard) {
         this.wizard = wizard;
+        
+        
     }
 
     @Override

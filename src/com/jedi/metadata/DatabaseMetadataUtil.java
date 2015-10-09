@@ -19,44 +19,61 @@ import java.util.List;
  */
 public class DatabaseMetadataUtil {
 
-    public static List<PackageMetadata> getPackages(Connection connection) throws SQLException {
+    public static List<PackageMetadata> searchPackages(String pattern, Connection connection) throws SQLException {
         List<PackageMetadata> result = new ArrayList<PackageMetadata>();
-        String sql = "select object_name from user_objects where object_type='PACKAGE' and status='VALID'";
+        pattern = pattern.toUpperCase();
+        String sql = "SELECT OBJECT_ID,OBJECT_NAME FROM USER_OBJECTS WHERE OBJECT_TYPE='PACKAGE' AND STATUS='VALID' AND OBJECT_NAME LIKE '" + pattern + "%' ORDER BY OBJECT_NAME";
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
-            String packageName = resultSet.getString("object_name");
+            long objectId = resultSet.getLong("OBJECT_ID");
+            String packageName = resultSet.getString("OBJECT_NAME");
             PackageMetadata packageMetadata = new PackageMetadata();
+            packageMetadata.setId(objectId);
             packageMetadata.setName(packageName);
             result.add(packageMetadata);
         }
         return result;
     }
 
-    public static List<ProcedureMetadata> getProcedures(Connection connection) throws SQLException {
-        return getProcedures(connection, null);
-    }
-
-    public static List<ProcedureMetadata> getProcedures(Connection connection, PackageMetadata packageMetadata) throws SQLException {
+    public static List<ProcedureMetadata> searchProcedures(String pattern, Connection connection, PackageMetadata packageMetadata) throws SQLException {
         List<ProcedureMetadata> result = new ArrayList<ProcedureMetadata>();
-        DatabaseMetaData databaseMetaData = connection.getMetaData();
-        String catalog = "%";
-        if (packageMetadata != null && !packageMetadata.getName().isEmpty()) {
-            catalog = packageMetadata.getName();
-        } else {
-            catalog = connection.getCatalog();
+        pattern = pattern.toUpperCase();
+        String sql = "  SELECT PROCEDURE_NAME,"
+                + "         OBJECT_ID,"
+                + "         SUBPROGRAM_ID,"
+                + "         (SELECT COUNT (DATA_TYPE)"
+                + "            FROM ALL_ARGUMENTS"
+                + "           WHERE     OBJECT_ID = P.OBJECT_ID"
+                + "                 AND DATA_TYPE IS NOT NULL"
+                + "                 AND SUBPROGRAM_ID = P.SUBPROGRAM_ID"
+                + "                 AND POSITION = 0"
+                + "                 AND ARGUMENT_NAME IS NULL)"
+                + "            IS_FUNCTION"
+                + "    FROM USER_PROCEDURES P"
+                + "   WHERE OBJECT_ID = " + packageMetadata.getId();
+        if (pattern != null && !pattern.isEmpty()) {
+            sql += " AND PROCEDURE_NAME LIKE '" + pattern.toUpperCase() + "%'";
         }
-        ResultSet resultSet = databaseMetaData.getProcedures(catalog, databaseMetaData.getUserName(), "%");
+        sql += "ORDER BY PROCEDURE_NAME";
+        DatabaseMetaData meta = connection.getMetaData();
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
-            int procedureType = resultSet.getInt("PROCEDURE_TYPE");
-            if (procedureType == 1) {
-                ProcedureMetadata storedProcedureMetadata = new ProcedureMetadata();
-                storedProcedureMetadata.setName(resultSet.getString("PROCEDURE_NAME"));
-                storedProcedureMetadata.setProcedureCatalog(resultSet.getString("PROCEDURE_CAT"));
-                storedProcedureMetadata.setProcedureSchema(resultSet.getString("PROCEDURE_SCHEM"));
-                storedProcedureMetadata.setProcedureType(resultSet.getString("REMARKS"));
-                result.add(storedProcedureMetadata);
-            }
+            String name = resultSet.getString("PROCEDURE_NAME");
+            long objectId = resultSet.getLong("OBJECT_ID");
+            int subProgramId = resultSet.getInt("SUBPROGRAM_ID");
+            String procedureType = resultSet.getInt("IS_FUNCTION") == 1 ? "FUNCTION" : "PROCEDURE";
+
+            ProcedureMetadata procedureMetadata = new ProcedureMetadata();
+            procedureMetadata.setId(subProgramId);
+            procedureMetadata.setName(name);
+            procedureMetadata.setPackageId(objectId);
+            procedureMetadata.setPackageName(packageMetadata.getName());
+            procedureMetadata.setSchemaName(meta.getUserName());
+            procedureMetadata.setProcedureType(procedureType);
+            
+            result.add(procedureMetadata);
         }
         return result;
     }

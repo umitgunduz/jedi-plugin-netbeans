@@ -8,31 +8,25 @@ package com.jedi.netbeans;
 import com.jedi.metadata.DatabaseMetadataUtil;
 import com.jedi.metadata.PackageMetadata;
 import com.jedi.metadata.ProcedureMetadata;
-import com.sun.org.apache.bcel.internal.generic.StoreInstruction;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeEvent;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
-import org.jdesktop.swingx.autocomplete.ComboBoxCellEditor;
 import org.netbeans.api.db.explorer.ConnectionManager;
 import org.netbeans.api.db.explorer.DatabaseConnection;
 import org.openide.util.Exceptions;
 
 public final class CreationVisualPanel1 extends JPanel {
-
+    
     ConnectionManager connectionManager = new ConnectionManager();
-
+    
     public void updateView() {
-
+        
     }
 
     /**
@@ -40,79 +34,66 @@ public final class CreationVisualPanel1 extends JPanel {
      */
     public CreationVisualPanel1() {
         initComponents();
-        comboPackages.setModel(new DefaultComboBoxModel());
-        listProcedure.setModel(new DefaultListModel());
+        listPackages.setCellRenderer(new PackageListCellRenderer());
+        listProcedures.setCellRenderer(new ProcedureListCellRenderer());
         
-        
-        AutoCompleteDecorator.decorate(comboPackages);
-        ComboBoxCellEditor editor = new ComboBoxCellEditor(comboPackages);
-        CellEditorListener listener = new CellEditorListener() {
-            @Override
-            public void editingStopped(ChangeEvent e) {
-                final Object item = comboPackages.getSelectedItem();
-                if (item != null && (item instanceof PackageMetadata)) {
-                    comboPackages.setEditable(false);
-                    listProcedure.setEnabled(false);
-                    listProcedure.setModel(new DefaultListModel());
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            showProcedures((PackageMetadata) item);
-                        }
-                    });
-                    comboPackages.setEditable(true);
-                    listProcedure.setEnabled(true);
-                }
-            }
-
-            @Override
-            public void editingCanceled(ChangeEvent e) {
-
-            }
-        };
-
-        editor.addCellEditorListener(listener);
-
     }
-
+    
     @Override
     public String getName() {
         return "Choose the stored procedure";
     }
-
-    private void showProcedures(PackageMetadata packageMetadata) {
+    
+    private ComboBoxModel getAvailableConnections() {
+        return new DefaultComboBoxModel(connectionManager.getConnections());
+    }
+    
+    private void searchPackages() throws SQLException {
+        String pattern = txtSearchPackages.getText();
+        DefaultListModel model = new DefaultListModel();
         Connection connection = getConnection();
-        try {
-            List<ProcedureMetadata> list = DatabaseMetadataUtil.getProcedures(connection, packageMetadata);
-            if (list != null && !list.isEmpty()) {
-                DefaultListModel model = new DefaultListModel();
-                for (ProcedureMetadata procedureMetadata : list) {
-                    model.addElement(procedureMetadata);
-                }
-
-                listProcedure.setModel(model);
-                listProcedure.setSelectedIndex(0);
+        List<PackageMetadata> list = DatabaseMetadataUtil.searchPackages(pattern, connection);
+        if (list != null && !list.isEmpty()) {
+            for (PackageMetadata packageMetadata : list) {
+                model.addElement(packageMetadata);
             }
-
+        }
+        
+        listPackages.setModel(model);
+        listPackages.setSelectedIndex(-1);
+        
+    }
+    
+    private void searchProcedures() {
+        try {
+            Connection connection = getConnection();
+            String pattern = txtSearchProcedures.getText();
+            PackageMetadata packageMetadata = null;
+            if (listPackages.getSelectedIndex() > -1) {
+                if (listPackages.getSelectedValue() instanceof PackageMetadata) {
+                    packageMetadata = (PackageMetadata) listPackages.getSelectedValue();
+                }
+            }
+            
+            DefaultListModel model = new DefaultListModel();
+            
+            if (packageMetadata != null) {
+                List<ProcedureMetadata> list = DatabaseMetadataUtil.searchProcedures(pattern, connection, packageMetadata);
+                if (list != null && !list.isEmpty()) {
+                    for (ProcedureMetadata procedureMetadata : list) {
+                        model.addElement(procedureMetadata);
+                    }
+                }
+            }
+            
+            listProcedures.setModel(model);
+            listProcedures.setSelectedIndex(-1);
+            
         } catch (SQLException ex) {
             Exceptions.printStackTrace(ex);
         }
     }
-
-    private ComboBoxModel getAvailableConnections() {
-        return new DefaultComboBoxModel(connectionManager.getConnections());
-    }
-
-    private ComboBoxModel getAvailablePackages(Connection connection) throws SQLException {
-        ComboBoxModel result = null;
-        List<PackageMetadata> list = DatabaseMetadataUtil.getPackages(connection);
-        if (list != null && !list.isEmpty()) {
-            result = new DefaultComboBoxModel(list.toArray());
-        }
-
-        return result;
-    }
-
+    
     private Connection getConnection() {
         Connection result = null;
         Object item = comboConnections.getSelectedItem();
@@ -133,17 +114,21 @@ public final class CreationVisualPanel1 extends JPanel {
 
         connectButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
-        jSeparator2 = new javax.swing.JSeparator();
         newConnectionButton = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         comboConnections = new javax.swing.JComboBox();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        listPackages = new javax.swing.JList();
+        jSeparator3 = new javax.swing.JSeparator();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        listProcedures = new javax.swing.JList();
+        txtSearchPackages = new javax.swing.JTextField();
+        buttonSearchPackage = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
-        textSearch = new javax.swing.JTextField();
-        comboPackages = new javax.swing.JComboBox();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        listProcedure = new javax.swing.JList();
+        txtSearchProcedures = new javax.swing.JTextField();
+        buttonSearchProcedures = new javax.swing.JButton();
 
         setPreferredSize(new java.awt.Dimension(662, 472));
 
@@ -157,7 +142,7 @@ public final class CreationVisualPanel1 extends JPanel {
         org.openide.awt.Mnemonics.setLocalizedText(newConnectionButton, org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.newConnectionButton.text")); // NOI18N
         newConnectionButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                newConnectionButtoncreateNewConnection(evt);
+                createNewConnection(evt);
             }
         });
 
@@ -172,20 +157,40 @@ public final class CreationVisualPanel1 extends JPanel {
             }
         });
 
+        listPackages.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                listPackagesValueChanged(evt);
+            }
+        });
+        jScrollPane1.setViewportView(listPackages);
+
+        jSeparator3.setOrientation(javax.swing.SwingConstants.VERTICAL);
+
+        jScrollPane2.setViewportView(listProcedures);
+
+        txtSearchPackages.setText(org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.txtSearchPackages.text")); // NOI18N
+
+        buttonSearchPackage.setIcon(new javax.swing.ImageIcon("E:\\Turkcell\\Umit\\git\\jedi-plugin-netbeans\\resources\\search.png")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(buttonSearchPackage, org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.buttonSearchPackage.text")); // NOI18N
+        buttonSearchPackage.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                buttonSearchPackageMouseClicked(evt);
+            }
+        });
+
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.jLabel3.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.jLabel4.text")); // NOI18N
 
-        textSearch.setText(org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.textSearch.text")); // NOI18N
+        txtSearchProcedures.setText(org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.txtSearchProcedures.text")); // NOI18N
 
-        comboPackages.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        listProcedure.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
+        buttonSearchProcedures.setIcon(new javax.swing.ImageIcon("E:\\Turkcell\\Umit\\git\\jedi-plugin-netbeans\\resources\\search.png")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(buttonSearchProcedures, org.openide.util.NbBundle.getMessage(CreationVisualPanel1.class, "CreationVisualPanel1.buttonSearchProcedures.text")); // NOI18N
+        buttonSearchProcedures.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                buttonSearchProceduresMouseClicked(evt);
+            }
         });
-        jScrollPane1.setViewportView(listProcedure);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -199,26 +204,37 @@ public final class CreationVisualPanel1 extends JPanel {
                         .addGap(23, 173, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                 .addComponent(jLabel1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(comboConnections, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addComponent(jSeparator1)
-                            .addComponent(jSeparator2)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel3)
-                                    .addComponent(jLabel4))
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(textSearch)
-                                    .addComponent(comboPackages, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(connectButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(newConnectionButton)))
+                                .addComponent(newConnectionButton))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 325, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addComponent(txtSearchPackages)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(buttonSearchPackage, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jLabel3))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jScrollPane2)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addComponent(jLabel4)
+                                                .addGap(0, 0, Short.MAX_VALUE))
+                                            .addComponent(txtSearchProcedures))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(buttonSearchProcedures, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                         .addContainerGap())))
         );
         layout.setVerticalGroup(
@@ -235,88 +251,86 @@ public final class CreationVisualPanel1 extends JPanel {
                     .addComponent(newConnectionButton)
                     .addComponent(connectButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 1, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(comboPackages, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4)
-                    .addComponent(textSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 305, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 1, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(txtSearchPackages, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(buttonSearchPackage))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane1))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel4)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(buttonSearchProcedures)
+                                    .addComponent(txtSearchProcedures, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 320, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addComponent(jSeparator3))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void connect(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connect
-        try {
-            comboPackages.setEnabled(false);
-            comboConnections.setEnabled(false);
-            connectButton.setEnabled(false);
-            newConnectionButton.setEnabled(false);
-            textSearch.setEnabled(false);
-            listProcedure.setEnabled(false);
-
-            DatabaseConnection sc = (DatabaseConnection) comboConnections.getSelectedItem();
-            if (sc != null) {
-                connectionManager.showConnectionDialog(sc);
-            }
-
-            final Connection connection = getConnection();
-            SwingUtilities.invokeLater(new Runnable() {
-
-                @Override
-                public void run() {
-                    ComboBoxModel model = null;
-                    try {
-                        model = getAvailablePackages(connection);
-                    } catch (SQLException ex) {
-                        Exceptions.printStackTrace(ex);
-                    }
-                    comboPackages.setModel(model);
-                }
-            });
-        } catch (Exception e) {
-            Exceptions.printStackTrace(e);
-        } finally {
-            comboPackages.setEnabled(true);
-            comboConnections.setEnabled(true);
-            newConnectionButton.setEnabled(true);
-            textSearch.setEnabled(true);
-            listProcedure.setEnabled(true);
-
+        
+        DatabaseConnection sc = (DatabaseConnection) comboConnections.getSelectedItem();
+        if (sc != null) {
+            connectionManager.showConnectionDialog(sc);
         }
-
-
     }//GEN-LAST:event_connect
 
-    private void newConnectionButtoncreateNewConnection(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newConnectionButtoncreateNewConnection
+    private void createNewConnection(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createNewConnection
         connectionManager.showAddConnectionDialog(null);
         comboConnections.setModel(getAvailableConnections());
 
-    }//GEN-LAST:event_newConnectionButtoncreateNewConnection
+    }//GEN-LAST:event_createNewConnection
 
     private void choseConnection(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_choseConnection
         connectButton.setEnabled(true);
     }//GEN-LAST:event_choseConnection
 
+    private void buttonSearchPackageMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_buttonSearchPackageMouseClicked
+        try {
+            searchPackages();
+        } catch (SQLException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+    }//GEN-LAST:event_buttonSearchPackageMouseClicked
+
+    private void listPackagesValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listPackagesValueChanged
+        if (!evt.getValueIsAdjusting()) {
+            searchProcedures();
+        }
+    }//GEN-LAST:event_listPackagesValueChanged
+
+    private void buttonSearchProceduresMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_buttonSearchProceduresMouseClicked
+        searchProcedures();
+
+    }//GEN-LAST:event_buttonSearchProceduresMouseClicked
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonSearchPackage;
+    private javax.swing.JButton buttonSearchProcedures;
     private javax.swing.JComboBox comboConnections;
-    private javax.swing.JComboBox comboPackages;
     private javax.swing.JButton connectButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JSeparator jSeparator2;
-    private javax.swing.JList listProcedure;
+    private javax.swing.JSeparator jSeparator3;
+    private javax.swing.JList listPackages;
+    private javax.swing.JList listProcedures;
     private javax.swing.JButton newConnectionButton;
-    private javax.swing.JTextField textSearch;
+    private javax.swing.JTextField txtSearchPackages;
+    private javax.swing.JTextField txtSearchProcedures;
     // End of variables declaration//GEN-END:variables
 }

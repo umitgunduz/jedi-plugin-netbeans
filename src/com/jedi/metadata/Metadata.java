@@ -14,7 +14,9 @@ import java.util.List;
 public interface Metadata {
 
     List<Metadata> getChildren();
-    String getName();
+    long getId();
+    void setId(long id);
+    String getName();    
     void setName(String name);
     void addChild(Metadata child);
 }

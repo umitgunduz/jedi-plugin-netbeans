@@ -1,12 +1,16 @@
 <#assign licenseFirst = "/*">
 <#assign licensePrefix = " * ">
 <#assign licenseLast = " */">
-<#include "../Licenses/license-${project.license}.txt"> 
+<#include "${project.licensePath}">
 
 <#if package?? && package != "">
 package ${package};
 
 </#if>
-/** * * @author ${user} */
+/**
+ *
+ * @author ${user}
+ */
+public class ${name} {
 
-public class ${name} { }
+}

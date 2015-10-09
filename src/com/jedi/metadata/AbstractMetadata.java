@@ -12,13 +12,25 @@ import java.util.List;
  *
  * @author umit
  */
-public abstract class AbstractMetadata implements Metadata{
+public abstract class AbstractMetadata implements Metadata {
+
     private List<Metadata> children;
+    private long id;
     private String name;
 
     @Override
     public List<Metadata> getChildren() {
         return children;
+    }
+
+    @Override
+    public long getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(long id) {
+        this.id = id;
     }
 
     @Override
@@ -44,6 +56,5 @@ public abstract class AbstractMetadata implements Metadata{
     public String toString() {
         return this.name;
     }
-    
-    
+
 }
