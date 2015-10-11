@@ -11,12 +11,10 @@ import com.jedi.metadata.ProcedureMetadata;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Vector;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import org.netbeans.api.db.explorer.DatabaseConnection;
-import org.openide.util.Exceptions;
 
 public final class CreationVisualPanel2 extends JPanel {
 
@@ -51,6 +49,15 @@ public final class CreationVisualPanel2 extends JPanel {
         TableColumn fieldTypeColumn = tableArguments.getColumnModel().getColumn(4);
         String[] fieldTypes = {"String", "int", "long", "double", "byte[]"};
         fieldTypeColumn.setCellEditor(new ArgumentFieldTypeCellEditor(fieldTypes));
+
+        TableColumn customTypeColumn = tableArguments.getColumnModel().getColumn(5);
+        customTypeColumn.setPreferredWidth(30);
+        customTypeColumn.setWidth(30);
+        customTypeColumn.setMaxWidth(30);
+        customTypeColumn.setMinWidth(30);
+
+        customTypeColumn.setCellRenderer(new ArgumentCustomTypeCellRenderer());
+        customTypeColumn.setCellEditor(new ArgumentCustomTypeCellEditor());
         tableArguments.setRowHeight(25);
     }
 
@@ -71,6 +78,8 @@ public final class CreationVisualPanel2 extends JPanel {
         jScrollPane1 = new javax.swing.JScrollPane();
         tableArguments = new javax.swing.JTable();
 
+        setPreferredSize(new java.awt.Dimension(662, 472));
+
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(CreationVisualPanel2.class, "CreationVisualPanel2.jLabel1.text")); // NOI18N
 
         tableArguments.setModel(new javax.swing.table.DefaultTableModel(
@@ -87,13 +96,14 @@ public final class CreationVisualPanel2 extends JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 628, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(jLabel1)
-                        .addContainerGap(361, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -101,8 +111,8 @@ public final class CreationVisualPanel2 extends JPanel {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(59, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 433, Short.MAX_VALUE)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 

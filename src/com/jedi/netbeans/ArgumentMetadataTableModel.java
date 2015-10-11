@@ -15,7 +15,7 @@ import javax.swing.table.AbstractTableModel;
  */
 public class ArgumentMetadataTableModel extends AbstractTableModel {
 
-    private String[] columnNames = {"Argument Name", "Data Type", "Argument Type", "Field Name", "Field Type"};
+    private String[] columnNames = {"Argument Name", "Data Type", "Argument Type", "Field Name", "Field Type", ""};
     private List<ArgumentMetadata> data;
 
     public ArgumentMetadataTableModel(List<ArgumentMetadata> arguments) {
@@ -71,6 +71,7 @@ public class ArgumentMetadataTableModel extends AbstractTableModel {
         switch (columnIndex) {
             case 3:
             case 4:
+            case 5:
                 result = true;
                 break;
         }
