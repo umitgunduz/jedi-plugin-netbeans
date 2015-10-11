@@ -5,8 +5,12 @@
  */
 package com.jedi.netbeans;
 
+import com.jedi.metadata.ProcedureMetadata;
+import java.sql.SQLException;
 import javax.swing.event.ChangeListener;
+import org.netbeans.api.db.explorer.DatabaseConnection;
 import org.openide.WizardDescriptor;
+import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 
 public class CreationWizardPanel2 implements WizardDescriptor.Panel<WizardDescriptor> {
@@ -57,7 +61,18 @@ public class CreationWizardPanel2 implements WizardDescriptor.Panel<WizardDescri
 
     @Override
     public void readSettings(WizardDescriptor wiz) {
+
         // use wiz.getProperty to retrieve previous panel state
+        DatabaseConnection databaseConnection = (DatabaseConnection) wiz.getProperty("DatabaseConnection");
+        this.getComponent().setDatabaseConnection(databaseConnection);
+
+        ProcedureMetadata procedureMetadata = (ProcedureMetadata) wiz.getProperty("Procedure");
+        this.getComponent().setProcedure(procedureMetadata);
+        try {
+            this.getComponent().loadArguments();
+        } catch (SQLException ex) {
+            Exceptions.printStackTrace(ex);
+        }
     }
 
     @Override

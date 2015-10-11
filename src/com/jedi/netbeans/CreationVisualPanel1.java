@@ -13,20 +13,46 @@ import java.sql.SQLException;
 import java.util.List;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import org.netbeans.api.db.explorer.ConnectionManager;
 import org.netbeans.api.db.explorer.DatabaseConnection;
 import org.openide.util.Exceptions;
 
 public final class CreationVisualPanel1 extends JPanel {
-    
+
     ConnectionManager connectionManager = new ConnectionManager();
-    
-    public void updateView() {
-        
+
+    public PackageMetadata getSelectedPackage() {
+        PackageMetadata packageMetadata = null;
+        if (listPackages.getSelectedIndex() > -1) {
+            if (listPackages.getSelectedValue() instanceof PackageMetadata) {
+                packageMetadata = (PackageMetadata) listPackages.getSelectedValue();
+            }
+        }
+
+        return packageMetadata;
+    }
+
+    public ProcedureMetadata getSelectedProcedure() {
+        ProcedureMetadata procedureMetadata = null;
+        if (listProcedures.getSelectedIndex() > -1) {
+            if (listProcedures.getSelectedValue() instanceof ProcedureMetadata) {
+                procedureMetadata = (ProcedureMetadata) listProcedures.getSelectedValue();
+            }
+        }
+
+        return procedureMetadata;
+    }
+
+    public DatabaseConnection getDatabaseConnection() {
+        DatabaseConnection result = null;
+        Object item = comboConnections.getSelectedItem();
+        if (item != null && item instanceof DatabaseConnection) {
+            result = (DatabaseConnection) item;
+        }
+
+        return result;
     }
 
     /**
@@ -36,18 +62,18 @@ public final class CreationVisualPanel1 extends JPanel {
         initComponents();
         listPackages.setCellRenderer(new PackageListCellRenderer());
         listProcedures.setCellRenderer(new ProcedureListCellRenderer());
-        
+
     }
-    
+
     @Override
     public String getName() {
         return "Choose the stored procedure";
     }
-    
+
     private ComboBoxModel getAvailableConnections() {
         return new DefaultComboBoxModel(connectionManager.getConnections());
     }
-    
+
     private void searchPackages() throws SQLException {
         String pattern = txtSearchPackages.getText();
         DefaultListModel model = new DefaultListModel();
@@ -58,12 +84,12 @@ public final class CreationVisualPanel1 extends JPanel {
                 model.addElement(packageMetadata);
             }
         }
-        
+
         listPackages.setModel(model);
         listPackages.setSelectedIndex(-1);
-        
+
     }
-    
+
     private void searchProcedures() {
         try {
             Connection connection = getConnection();
@@ -74,9 +100,9 @@ public final class CreationVisualPanel1 extends JPanel {
                     packageMetadata = (PackageMetadata) listPackages.getSelectedValue();
                 }
             }
-            
+
             DefaultListModel model = new DefaultListModel();
-            
+
             if (packageMetadata != null) {
                 List<ProcedureMetadata> list = DatabaseMetadataUtil.searchProcedures(pattern, connection, packageMetadata);
                 if (list != null && !list.isEmpty()) {
@@ -85,15 +111,15 @@ public final class CreationVisualPanel1 extends JPanel {
                     }
                 }
             }
-            
+
             listProcedures.setModel(model);
             listProcedures.setSelectedIndex(-1);
-            
+
         } catch (SQLException ex) {
             Exceptions.printStackTrace(ex);
         }
     }
-    
+
     private Connection getConnection() {
         Connection result = null;
         Object item = comboConnections.getSelectedItem();
@@ -278,7 +304,7 @@ public final class CreationVisualPanel1 extends JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void connect(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connect
-        
+
         DatabaseConnection sc = (DatabaseConnection) comboConnections.getSelectedItem();
         if (sc != null) {
             connectionManager.showConnectionDialog(sc);

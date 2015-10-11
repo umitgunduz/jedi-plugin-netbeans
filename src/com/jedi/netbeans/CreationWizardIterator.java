@@ -56,9 +56,9 @@ public final class CreationWizardIterator implements WizardDescriptor.Instantiat
             panels = new ArrayList<WizardDescriptor.Panel<WizardDescriptor>>();
             panels.add(new CreationWizardPanel1());
             panels.add(JavaTemplates.createPackageChooser(p, sg, null, true));
+            panels.add(new CreationWizardPanel2());
             panels.add(new CreationWizardPanel3());
             panels.add(new CreationWizardPanel4());
-            panels.add(new CreationWizardPanel5());
             String[] steps = createSteps();
             for (int i = 0; i < panels.size(); i++) {
                 Component c = panels.get(i).getComponent();

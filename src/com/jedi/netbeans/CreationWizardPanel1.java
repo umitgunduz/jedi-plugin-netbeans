@@ -5,7 +5,10 @@
  */
 package com.jedi.netbeans;
 
+import com.jedi.metadata.PackageMetadata;
+import com.jedi.metadata.ProcedureMetadata;
 import javax.swing.event.ChangeListener;
+import org.netbeans.api.db.explorer.DatabaseConnection;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 
@@ -63,6 +66,14 @@ public class CreationWizardPanel1 implements WizardDescriptor.Panel<WizardDescri
     @Override
     public void storeSettings(WizardDescriptor wiz) {
         // use wiz.putProperty to remember current panel state
+        PackageMetadata packageMetadata = this.getComponent().getSelectedPackage();
+        wiz.putProperty("Package", packageMetadata);
+        
+        ProcedureMetadata procedureMetadata = this.getComponent().getSelectedProcedure();
+        wiz.putProperty("Procedure", procedureMetadata);
+        
+        DatabaseConnection databaseConnection=this.getComponent().getDatabaseConnection();
+        wiz.putProperty("DatabaseConnection", databaseConnection);
     }
 
 }

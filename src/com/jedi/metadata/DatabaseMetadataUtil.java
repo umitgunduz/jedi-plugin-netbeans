@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import oracle.jdbc.OracleTypes;
 
 /**
  *
@@ -72,32 +73,48 @@ public class DatabaseMetadataUtil {
             procedureMetadata.setPackageName(packageMetadata.getName());
             procedureMetadata.setSchemaName(meta.getUserName());
             procedureMetadata.setProcedureType(procedureType);
-            
+
             result.add(procedureMetadata);
         }
         return result;
     }
 
-    public static List<ColumnMetadata> getProcedureColumns(Connection connection, String procedureName) throws SQLException {
-        List<ColumnMetadata> result = new ArrayList<ColumnMetadata>();
-        DatabaseMetaData meta = connection.getMetaData();
-        ResultSet resultSet = meta.getProcedureColumns(connection.getCatalog(), meta.getUserName(), procedureName, "%");
+    public static List<ArgumentMetadata> getProcedureArguments(Connection connection, ProcedureMetadata procedureMetadata) throws SQLException {
+        List<ArgumentMetadata> result = new ArrayList<ArgumentMetadata>();
+        String sql = "SELECT ARGUMENT_NAME,"
+                + "       POSITION,"
+                + "       SEQUENCE,"
+                + "       DATA_TYPE,"
+                + "       IN_OUT,"
+                + "       DATA_LENGTH,"
+                + "       DATA_PRECISION,"
+                + "       DATA_SCALE,"
+                + "       RADIX,"
+                + "       TYPE_OWNER,"
+                + "       TYPE_NAME,"
+                + "       PLS_TYPE"
+                + "  FROM ALL_ARGUMENTS"
+                + " WHERE OBJECT_ID = " + procedureMetadata.getPackageId() + " AND SUBPROGRAM_ID = " + procedureMetadata.getId() + "";
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
-            ColumnMetadata columnMetadata = new ColumnMetadata();
-            columnMetadata.setName(resultSet.getString("COLUMN_NAME"));
-            columnMetadata.setColumnType(resultSet.getInt("COLUMN_TYPE"));
-            columnMetadata.setDataType(resultSet.getInt("DATA_TYPE"));
-            columnMetadata.setTypeName(resultSet.getString("TYPE_NAME"));
-            columnMetadata.setPrecision(resultSet.getInt("PRECISION"));
-            columnMetadata.setLength(resultSet.getInt("LENGTH"));
-            columnMetadata.setScale(resultSet.getInt("SCALE"));
-            columnMetadata.setRadix(resultSet.getInt("RADIX"));
-            columnMetadata.setNullable(resultSet.getInt("NULLABLE") == 1);
-            columnMetadata.setRemarks(resultSet.getString("REMARKS"));
-            columnMetadata.setOrdinalPosition(resultSet.getInt("ORDINAL_POSITION"));
-            columnMetadata.setSequence(resultSet.getInt("SEQUENCE"));
-            result.add(columnMetadata);
+            ArgumentMetadata argumentMetadata = new ArgumentMetadata();
+            argumentMetadata.setName(resultSet.getString("ARGUMENT_NAME"));
+            argumentMetadata.setPosition(resultSet.getInt("POSITION"));
+            argumentMetadata.setSequence(resultSet.getInt("SEQUENCE"));
+            argumentMetadata.setDataType(resultSet.getString("DATA_TYPE"));
+            argumentMetadata.setInOut(resultSet.getString("IN_OUT"));
+            argumentMetadata.setLength(resultSet.getInt("DATA_LENGTH"));
+            argumentMetadata.setPrecision(resultSet.getInt("DATA_PRECISION"));
+            argumentMetadata.setScale(resultSet.getInt("DATA_SCALE"));
+            argumentMetadata.setRadix(resultSet.getInt("RADIX"));
+            argumentMetadata.setCustomTypeOwner(resultSet.getString("TYPE_OWNER"));
+            argumentMetadata.setCustomTypeName(resultSet.getString("TYPE_NAME"));
+            argumentMetadata.setPlsType(resultSet.getString("PLS_TYPE"));
+            result.add(argumentMetadata);
         }
         return result;
+
     }
+
 }
