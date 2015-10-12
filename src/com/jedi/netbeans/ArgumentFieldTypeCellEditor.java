@@ -36,7 +36,6 @@ public class ArgumentFieldTypeCellEditor extends AbstractCellEditor
 
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-
         this.fieldType = (String) value;
 
         JComboBox<String> comboFieldTypes = new JComboBox<String>();

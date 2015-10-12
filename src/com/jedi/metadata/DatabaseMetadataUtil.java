@@ -5,6 +5,7 @@
  */
 package com.jedi.metadata;
 
+import com.google.common.base.CaseFormat;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -12,7 +13,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import oracle.jdbc.OracleTypes;
 
 /**
  *
@@ -94,12 +94,13 @@ public class DatabaseMetadataUtil {
                 + "       TYPE_NAME,"
                 + "       PLS_TYPE"
                 + "  FROM ALL_ARGUMENTS"
-                + " WHERE OBJECT_ID = " + procedureMetadata.getPackageId() + " AND SUBPROGRAM_ID = " + procedureMetadata.getId() + "";
+                + " WHERE OBJECT_ID = " + procedureMetadata.getPackageId() + " AND SUBPROGRAM_ID = " + procedureMetadata.getId() + " AND DATA_LEVEL=0";
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
             ArgumentMetadata argumentMetadata = new ArgumentMetadata();
-            argumentMetadata.setName(resultSet.getString("ARGUMENT_NAME"));
+            String argumentName = resultSet.getString("ARGUMENT_NAME");
+            argumentMetadata.setName(argumentName);
             argumentMetadata.setPosition(resultSet.getInt("POSITION"));
             argumentMetadata.setSequence(resultSet.getInt("SEQUENCE"));
             argumentMetadata.setDataType(resultSet.getString("DATA_TYPE"));
@@ -111,10 +112,64 @@ public class DatabaseMetadataUtil {
             argumentMetadata.setCustomTypeOwner(resultSet.getString("TYPE_OWNER"));
             argumentMetadata.setCustomTypeName(resultSet.getString("TYPE_NAME"));
             argumentMetadata.setPlsType(resultSet.getString("PLS_TYPE"));
+
+            if (argumentName != null && !argumentName.isEmpty()) {
+                argumentName = argumentName.toUpperCase();
+                if (argumentName.startsWith("P_")) {
+                    argumentName = argumentName.substring(2);
+                }
+                String fieldName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, argumentName);
+                argumentMetadata.setFieldName(fieldName);
+            } else {
+                String fieldName = "result";
+                argumentMetadata.setFieldName(fieldName);
+            }
+
             result.add(argumentMetadata);
         }
         return result;
 
     }
 
+    public static String getJavaType(String dataType) {
+        switch (dataType) {
+            case "CHAR":
+            case "VARCHAR":
+            case "LONGVARCHAR":
+                return "String";
+            case "NUMERIC":
+            case "DECIMAL":
+                return "BigDecimal";
+            case "BIT":
+                return "boolean";
+            case "TINYINT":
+                return "byte";
+            case "SMALLINT":
+                return "short";
+            case "INTEGER":
+                return "int";
+            case "BIGINT":
+                return "long";
+            case "REAL":
+                return "float";
+            case "FLOAT":
+            case "DOUBLE":
+                return "double";
+            case "BINARY":
+            case "VARBINARY":
+            case "LONGVARBINARY":
+                return "byte[]";
+            case "DATE":
+            case "TIME":
+            case "TIMESTAMP":
+                return "Date";
+            case "BLOB":
+                return "byte[]";
+            case "CLOB":
+                return "String";
+            default:
+                return "";
+
+        }
+    }
 }

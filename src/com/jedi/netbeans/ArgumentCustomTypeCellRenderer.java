@@ -19,17 +19,26 @@ public class ArgumentCustomTypeCellRenderer implements TableCellRenderer {
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        JButton button = new JButton();
-        button.setText("...");
-        if (isSelected) {
-            button.setForeground(table.getSelectionForeground());
-            button.setBackground(table.getSelectionBackground());
-        } else {
-            button.setForeground(table.getForeground());
-            button.setBackground(UIManager.getColor("Button.background"));
+        Component result = null;
+        String dataType = (String) table.getModel().getValueAt(row, 1);
+        switch (dataType) {
+            case "OBJECT":
+            case "TABLE":
+            case "REF CURSOR":
+                JButton button = new JButton();
+                button.setText("...");
+                if (isSelected) {
+                    button.setForeground(table.getSelectionForeground());
+                    button.setBackground(table.getSelectionBackground());
+                } else {
+                    button.setForeground(table.getForeground());
+                    button.setBackground(UIManager.getColor("Button.background"));
+                }
+                result = button;
+                break;
         }
 
-        return button;
+        return result;
     }
 
 }

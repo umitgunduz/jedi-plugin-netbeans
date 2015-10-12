@@ -47,9 +47,8 @@ public final class CreationVisualPanel2 extends JPanel {
         ArgumentMetadataTableModel model = new ArgumentMetadataTableModel(arguments);
         tableArguments.setModel(model);
         TableColumn fieldTypeColumn = tableArguments.getColumnModel().getColumn(4);
-        String[] fieldTypes = {"String", "int", "long", "double", "byte[]"};
+        String[] fieldTypes = {"String", "int", "long", "short", "float", "double", "BigDecimal", "byte", "byte[]", "boolean", "Date", "sql.Date", "sql.Time", "sql.Timestamp"};
         fieldTypeColumn.setCellEditor(new ArgumentFieldTypeCellEditor(fieldTypes));
-
         TableColumn customTypeColumn = tableArguments.getColumnModel().getColumn(5);
         customTypeColumn.setPreferredWidth(30);
         customTypeColumn.setWidth(30);

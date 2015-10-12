@@ -55,10 +55,10 @@ public final class CreationWizardIterator implements WizardDescriptor.Instantiat
         if (panels == null) {
             panels = new ArrayList<WizardDescriptor.Panel<WizardDescriptor>>();
             panels.add(new CreationWizardPanel1());
-            panels.add(JavaTemplates.createPackageChooser(p, sg, null, true));
             panels.add(new CreationWizardPanel2());
             panels.add(new CreationWizardPanel3());
             panels.add(new CreationWizardPanel4());
+            panels.add(JavaTemplates.createPackageChooser(p, sg, null, true));
             String[] steps = createSteps();
             for (int i = 0; i < panels.size(); i++) {
                 Component c = panels.get(i).getComponent();
@@ -84,23 +84,22 @@ public final class CreationWizardIterator implements WizardDescriptor.Instantiat
     @Override
     public Set<?> instantiate() throws IOException {
         /*
-        Map args = new HashMap();
-        FileObject template;
-        template = Templates.getTemplate(wizard);
-        DataObject dataObject = DataObject.find(template);
-        FileObject dir = Templates.getTargetFolder(wizard);
-        DataFolder df = DataFolder.findFolder(dir);
-        String targetName = Templates.getTargetName(wizard);
-        dataObject.createFromTemplate(df, targetName, args);
-        */
+         Map args = new HashMap();
+         FileObject template;
+         template = Templates.getTemplate(wizard);
+         DataObject dataObject = DataObject.find(template);
+         FileObject dir = Templates.getTargetFolder(wizard);
+         DataFolder df = DataFolder.findFolder(dir);
+         String targetName = Templates.getTargetName(wizard);
+         dataObject.createFromTemplate(df, targetName, args);
+         */
         return Collections.emptySet();
     }
 
     @Override
     public void initialize(WizardDescriptor wizard) {
         this.wizard = wizard;
-        
-        
+
     }
 
     @Override

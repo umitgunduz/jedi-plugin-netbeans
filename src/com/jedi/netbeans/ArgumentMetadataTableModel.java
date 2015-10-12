@@ -68,11 +68,29 @@ public class ArgumentMetadataTableModel extends AbstractTableModel {
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         boolean result = false;
+        String dataType = (String) this.getValueAt(rowIndex, 1);
         switch (columnIndex) {
             case 3:
-            case 4:
-            case 5:
                 result = true;
+            case 4:
+                switch (dataType) {
+                    case "OBJECT":
+                    case "TABLE":
+                    case "REF CURSOR":
+                        break;
+                    default:
+                        result = true;
+                        break;
+                }
+                break;
+            case 5:
+                switch (dataType) {
+                    case "OBJECT":
+                    case "TABLE":
+                    case "REF CURSOR":
+                        result = true;
+                        break;
+                }
                 break;
         }
 
