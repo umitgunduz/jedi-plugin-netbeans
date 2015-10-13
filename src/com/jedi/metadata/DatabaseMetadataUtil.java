@@ -103,7 +103,8 @@ public class DatabaseMetadataUtil {
             argumentMetadata.setName(argumentName);
             argumentMetadata.setPosition(resultSet.getInt("POSITION"));
             argumentMetadata.setSequence(resultSet.getInt("SEQUENCE"));
-            argumentMetadata.setDataType(resultSet.getString("DATA_TYPE"));
+            String datatype = resultSet.getString("DATA_TYPE");
+            argumentMetadata.setDataType(datatype);
             argumentMetadata.setInOut(resultSet.getString("IN_OUT"));
             argumentMetadata.setLength(resultSet.getInt("DATA_LENGTH"));
             argumentMetadata.setPrecision(resultSet.getInt("DATA_PRECISION"));
@@ -125,6 +126,9 @@ public class DatabaseMetadataUtil {
                 argumentMetadata.setFieldName(fieldName);
             }
 
+            String javaType = getJavaType(datatype);
+            argumentMetadata.setFieldType(javaType);
+
             result.add(argumentMetadata);
         }
         return result;
@@ -134,42 +138,113 @@ public class DatabaseMetadataUtil {
     public static String getJavaType(String dataType) {
         switch (dataType) {
             case "CHAR":
-            case "VARCHAR":
-            case "LONGVARCHAR":
+            case "VARCHAR2":
+            case "LONG":
+            case "CLOB":
+            case "NCLOB":
+            case "NCHAR":
                 return "String";
-            case "NUMERIC":
-            case "DECIMAL":
-                return "BigDecimal";
-            case "BIT":
-                return "boolean";
-            case "TINYINT":
-                return "byte";
-            case "SMALLINT":
-                return "short";
-            case "INTEGER":
+            case "NUMBER":
                 return "int";
-            case "BIGINT":
-                return "long";
-            case "REAL":
-                return "float";
-            case "FLOAT":
-            case "DOUBLE":
-                return "double";
-            case "BINARY":
-            case "VARBINARY":
-            case "LONGVARBINARY":
+            case "RAW":
+            case "LONGRAW":
+            case "BLOB":
+            case "BFILE":
                 return "byte[]";
             case "DATE":
-            case "TIME":
             case "TIMESTAMP":
                 return "Date";
-            case "BLOB":
-                return "byte[]";
-            case "CLOB":
-                return "String";
             default:
                 return "";
 
         }
+    }
+
+    public static CustomTypeInfo getCustomType(Connection connection, ArgumentMetadata argument) throws SQLException {
+        String owner = argument.getCustomTypeOwner();
+        String typeName = argument.getCustomTypeName();
+        CustomTypeInfo customTypeInfo = null;
+        String sql = "SELECT OWNER,"
+                + "       TYPE_NAME,"
+                + "       TYPECODE,"
+                + "       TYPE_OID"
+                + "  FROM ALL_TYPES"
+                + " WHERE OWNER = '" + owner + "' AND TYPE_NAME = '" + typeName + "'";
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        resultSet.next();
+        customTypeInfo = new CustomTypeInfo();
+        customTypeInfo.setOwner(resultSet.getString("OWNER"));
+        customTypeInfo.setName(resultSet.getString("TYPE_NAME"));
+        String objectType = resultSet.getString("TYPECODE");
+        customTypeInfo.setObjectType(objectType);
+        customTypeInfo.setIsCollection("COLLECTION".equals(objectType));
+        if (customTypeInfo.isIsCollection()) {
+            sql = "SELECT COLL_TYPE, ELEM_TYPE_OWNER, ELEM_TYPE_NAME"
+                    + "  FROM ALL_COLL_TYPES"
+                    + " WHERE ELEM_TYPE_OWNER = '" + owner + "'"
+                    + "       AND TYPE_NAME = '" + typeName + "'";
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery(sql);
+            resultSet.next();
+            customTypeInfo.setCollectionType(resultSet.getString("COLL_TYPE"));
+            typeName = resultSet.getString("ELEM_TYPE_NAME");
+            customTypeInfo.setCollectionElementType(typeName);
+            owner = resultSet.getString("ELEM_TYPE_OWNER");
+            customTypeInfo.setCollectionElementTypeOwner(owner);
+        }
+
+        sql = "SELECT OWNER,"
+                + "         ATTR_NAME,"
+                + "         ATTR_TYPE_OWNER,"
+                + "         ATTR_TYPE_NAME,"
+                + "         LENGTH,"
+                + "         PRECISION,"
+                + "         SCALE,"
+                + "         ATTR_NO"
+                + "    FROM ALL_TYPE_ATTRS"
+                + "   WHERE OWNER = '" + owner + "' AND TYPE_NAME = '" + typeName + "'"
+                + "ORDER BY ATTR_NO";
+        statement = connection.createStatement();
+        resultSet = statement.executeQuery(sql);
+        while (resultSet.next()) {
+            CustomTypeArgumentInfo customTypeArgumentInfo = new CustomTypeArgumentInfo();
+            String argumentName = resultSet.getString("ATTR_NAME");
+            customTypeArgumentInfo.setName(argumentName);
+            customTypeArgumentInfo.setOwner(resultSet.getString("OWNER"));
+            String dataType = resultSet.getString("ATTR_TYPE_NAME");
+            if (dataType != null && !dataType.isEmpty()) {
+                dataType = dataType.toUpperCase();
+                customTypeArgumentInfo.setDataType(dataType);
+            }
+
+            String dataTypeOwner = resultSet.getString("ATTR_TYPE_OWNER");
+            customTypeArgumentInfo.setDataTypeOwner(dataTypeOwner);
+            customTypeArgumentInfo.setPosition(resultSet.getInt("ATTR_NO"));
+            customTypeArgumentInfo.setLength(resultSet.getInt("LENGTH"));
+            customTypeArgumentInfo.setPrecision(resultSet.getInt("PRECISION"));
+            customTypeArgumentInfo.setScale(resultSet.getInt("SCALE"));
+
+            if (dataTypeOwner != null && !dataTypeOwner.isEmpty()) {
+                customTypeArgumentInfo.setIsCustomObject(true);
+            }
+
+            customTypeInfo.getArguments().add(customTypeArgumentInfo);
+
+            if (argumentName != null && !argumentName.isEmpty()) {
+                argumentName = argumentName.toUpperCase();
+                if (argumentName.startsWith("P_")) {
+                    argumentName = argumentName.substring(2);
+                }
+                String fieldName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, argumentName);
+                customTypeArgumentInfo.setFieldName(fieldName);
+
+                String javaType = getJavaType(dataType);
+                customTypeArgumentInfo.setFieldType(javaType);
+
+            }
+        }
+        
+        return customTypeInfo;
     }
 }

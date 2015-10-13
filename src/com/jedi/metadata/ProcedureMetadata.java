@@ -5,6 +5,9 @@
  */
 package com.jedi.metadata;
 
+import java.util.List;
+import org.netbeans.api.db.explorer.DatabaseConnection;
+
 /**
  *
  * @author umit
@@ -14,6 +17,8 @@ public class ProcedureMetadata extends AbstractMetadata{
     private String packageName;
     private String schemaName;
     private String procedureType;
+    private List<ArgumentMetadata> arguments;
+    private DatabaseConnection databaseConnection;
 
     public long getPackageId() {
         return packageId;
@@ -46,4 +51,24 @@ public class ProcedureMetadata extends AbstractMetadata{
     public void setProcedureType(String procedureType) {
         this.procedureType = procedureType;
     }
+
+    public List<ArgumentMetadata> getArguments() {
+        return arguments;
+    }
+
+    public void setArguments(List<ArgumentMetadata> arguments) {
+        this.arguments = arguments;
+    }
+
+    public DatabaseConnection getDatabaseConnection() {
+        return databaseConnection;
+    }
+
+    public void setDatabaseConnection(DatabaseConnection databaseConnection) {
+        this.databaseConnection = databaseConnection;
+    }
+
+    
+
+    
 }

@@ -61,11 +61,6 @@ public class CreationWizardPanel2 implements WizardDescriptor.Panel<WizardDescri
 
     @Override
     public void readSettings(WizardDescriptor wiz) {
-
-        // use wiz.getProperty to retrieve previous panel state
-        DatabaseConnection databaseConnection = (DatabaseConnection) wiz.getProperty("DatabaseConnection");
-        this.getComponent().setDatabaseConnection(databaseConnection);
-
         ProcedureMetadata procedureMetadata = (ProcedureMetadata) wiz.getProperty("Procedure");
         this.getComponent().setProcedure(procedureMetadata);
         try {
@@ -77,7 +72,8 @@ public class CreationWizardPanel2 implements WizardDescriptor.Panel<WizardDescri
 
     @Override
     public void storeSettings(WizardDescriptor wiz) {
-        // use wiz.putProperty to remember current panel state
+        ProcedureMetadata procedureMetadata = this.getComponent().getProcedure();
+        wiz.putProperty("Procedure", procedureMetadata);
     }
 
 }

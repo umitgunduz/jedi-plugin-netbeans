@@ -7,18 +7,18 @@ package com.jedi.netbeans;
 
 import javax.swing.JPanel;
 
-public final class ArgumentCustomTypeVisualPanel1 extends JPanel {
+public final class CustomTypeMappingVisualPanel2 extends JPanel {
 
     /**
-     * Creates new form ArgumentCustomTypeVisualPanel1
+     * Creates new form CustomTypeMappingVisualPanel2
      */
-    public ArgumentCustomTypeVisualPanel1() {
+    public CustomTypeMappingVisualPanel2() {
         initComponents();
     }
 
     @Override
     public String getName() {
-        return "Step #1";
+        return "Step #2";
     }
 
     /**
@@ -29,29 +29,18 @@ public final class ArgumentCustomTypeVisualPanel1 extends JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(ArgumentCustomTypeVisualPanel1.class, "ArgumentCustomTypeVisualPanel1.jLabel1.text")); // NOI18N
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(42, 42, 42)
-                .addComponent(jLabel1)
-                .addContainerGap(325, Short.MAX_VALUE))
+            .addGap(0, 400, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(39, 39, 39)
-                .addComponent(jLabel1)
-                .addContainerGap(247, Short.MAX_VALUE))
+            .addGap(0, 300, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 }

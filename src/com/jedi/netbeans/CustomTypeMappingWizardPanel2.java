@@ -5,29 +5,26 @@
  */
 package com.jedi.netbeans;
 
-import com.jedi.metadata.PackageMetadata;
-import com.jedi.metadata.ProcedureMetadata;
 import javax.swing.event.ChangeListener;
-import org.netbeans.api.db.explorer.DatabaseConnection;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 
-public class CreationWizardPanel1 implements WizardDescriptor.Panel<WizardDescriptor> {
+public class CustomTypeMappingWizardPanel2 implements WizardDescriptor.Panel<WizardDescriptor> {
 
     /**
      * The visual component that displays this panel. If you need to access the
      * component from this class, just use getComponent().
      */
-    private CreationVisualPanel1 component;
+    private CustomTypeMappingVisualPanel2 component;
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
     // but never displayed, or not all panels are displayed, it is better to
     // create only those which really need to be visible.
     @Override
-    public CreationVisualPanel1 getComponent() {
+    public CustomTypeMappingVisualPanel2 getComponent() {
         if (component == null) {
-            component = new CreationVisualPanel1();
+            component = new CustomTypeMappingVisualPanel2();
         }
         return component;
     }
@@ -66,16 +63,6 @@ public class CreationWizardPanel1 implements WizardDescriptor.Panel<WizardDescri
     @Override
     public void storeSettings(WizardDescriptor wiz) {
         // use wiz.putProperty to remember current panel state
-        PackageMetadata packageMetadata = this.getComponent().getSelectedPackage();
-        wiz.putProperty("Package", packageMetadata);
-        
-        DatabaseConnection databaseConnection=this.getComponent().getDatabaseConnection();
-        
-        ProcedureMetadata procedureMetadata = this.getComponent().getSelectedProcedure();
-        procedureMetadata.setDatabaseConnection(databaseConnection);
-        wiz.putProperty("Procedure", procedureMetadata);
-        
-        
     }
 
 }

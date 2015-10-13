@@ -5,26 +5,28 @@
  */
 package com.jedi.netbeans;
 
+import com.jedi.metadata.ArgumentMetadata;
+import com.jedi.metadata.ProcedureMetadata;
 import javax.swing.event.ChangeListener;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 
-public class ArgumentCustomTypeWizardPanel1 implements WizardDescriptor.Panel<WizardDescriptor> {
+public class CustomTypeMappingWizardPanel1 implements WizardDescriptor.Panel<WizardDescriptor> {
 
     /**
      * The visual component that displays this panel. If you need to access the
      * component from this class, just use getComponent().
      */
-    private ArgumentCustomTypeVisualPanel1 component;
+    private CustomTypeMappingVisualPanel1 component;
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
     // but never displayed, or not all panels are displayed, it is better to
     // create only those which really need to be visible.
     @Override
-    public ArgumentCustomTypeVisualPanel1 getComponent() {
+    public CustomTypeMappingVisualPanel1 getComponent() {
         if (component == null) {
-            component = new ArgumentCustomTypeVisualPanel1();
+            component = new CustomTypeMappingVisualPanel1();
         }
         return component;
     }
@@ -58,6 +60,12 @@ public class ArgumentCustomTypeWizardPanel1 implements WizardDescriptor.Panel<Wi
     @Override
     public void readSettings(WizardDescriptor wiz) {
         // use wiz.getProperty to retrieve previous panel state
+        ProcedureMetadata procedure = (ProcedureMetadata) wiz.getProperty("Procedure");
+        ArgumentMetadata argument = (ArgumentMetadata) wiz.getProperty("Argument");
+        this.getComponent().setProcedure(procedure);
+        this.getComponent().setArgument(argument);
+        this.getComponent().loadCustomTypeInfo();
+        
     }
 
     @Override

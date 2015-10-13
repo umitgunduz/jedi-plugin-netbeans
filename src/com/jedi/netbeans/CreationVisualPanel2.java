@@ -11,7 +11,6 @@ import com.jedi.metadata.ProcedureMetadata;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.table.TableColumn;
 import org.netbeans.api.db.explorer.DatabaseConnection;
@@ -19,14 +18,13 @@ import org.netbeans.api.db.explorer.DatabaseConnection;
 public final class CreationVisualPanel2 extends JPanel {
 
     private ProcedureMetadata procedure;
-    private DatabaseConnection databaseConnection;
-
-    public void setDatabaseConnection(DatabaseConnection databaseConnection) {
-        this.databaseConnection = databaseConnection;
-    }
 
     public void setProcedure(ProcedureMetadata procedure) {
         this.procedure = procedure;
+    }
+
+    public ProcedureMetadata getProcedure() {
+        return procedure;
     }
 
     /**
@@ -38,13 +36,20 @@ public final class CreationVisualPanel2 extends JPanel {
     }
 
     public void loadArguments() throws SQLException {
-        if (this.databaseConnection == null || this.procedure == null) {
+
+        if (this.procedure == null) {
+            return;
+        }
+
+        DatabaseConnection databaseConnection = procedure.getDatabaseConnection();
+        if (databaseConnection == null) {
             return;
         }
 
         Connection connection = databaseConnection.getJDBCConnection();
         List<ArgumentMetadata> arguments = DatabaseMetadataUtil.getProcedureArguments(connection, this.procedure);
-        ArgumentMetadataTableModel model = new ArgumentMetadataTableModel(arguments);
+        procedure.setArguments(arguments);
+        ArgumentMetadataTableModel model = new ArgumentMetadataTableModel(procedure);
         tableArguments.setModel(model);
         TableColumn fieldTypeColumn = tableArguments.getColumnModel().getColumn(4);
         String[] fieldTypes = {"String", "int", "long", "short", "float", "double", "BigDecimal", "byte", "byte[]", "boolean", "Date", "sql.Date", "sql.Time", "sql.Timestamp"};

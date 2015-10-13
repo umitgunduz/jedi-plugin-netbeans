@@ -5,39 +5,32 @@
  */
 package com.jedi.netbeans;
 
-import com.jedi.metadata.ArgumentMetadata;
-import com.jedi.metadata.ProcedureMetadata;
+import com.jedi.metadata.CustomTypeArgumentInfo;
+import com.jedi.metadata.CustomTypeInfo;
 import javax.swing.table.AbstractTableModel;
 
 /**
  *
  * @author EXT0104423
  */
-public class ArgumentMetadataTableModel extends AbstractTableModel {
+public class CustomTypeInfoTableModel extends AbstractTableModel {
 
-    private final String[] columnNames = {"Argument Name", "Data Type", "Argument Type", "Field Name", "Field Type", ""};
-    private final ProcedureMetadata procedure;
-    
-    public ArgumentMetadataTableModel(ProcedureMetadata procedure) {
-        this.procedure = procedure;
-    }
-    
-    public ProcedureMetadata getProcedure() {
-        return procedure;
-    }
+    private final String[] columnNames = {"Argument Name", "Data Type", "Field Name", "Field Type", ""};
+    private final CustomTypeInfo customTypeInfo;
 
-    
-    public ArgumentMetadata getArgument(int rowIndex) {
-        ArgumentMetadata argument = procedure.getArguments().get(rowIndex);
-        return argument;
+    public CustomTypeInfoTableModel(CustomTypeInfo customTypeInfo) {
+        this.customTypeInfo = customTypeInfo;
     }
 
     @Override
     public int getRowCount() {
         int result = 0;
-        if (procedure != null && procedure.getArguments() != null && !procedure.getArguments().isEmpty()) {
-            result = procedure.getArguments().size();
+        if (customTypeInfo != null) {
+            if (customTypeInfo.getArguments() != null && !customTypeInfo.getArguments().isEmpty()) {
+                result = customTypeInfo.getArguments().size();
+            }
         }
+
         return result;
     }
 
@@ -45,7 +38,7 @@ public class ArgumentMetadataTableModel extends AbstractTableModel {
     public int getColumnCount() {
         return columnNames.length;
     }
-
+    
     @Override
     public String getColumnName(int column) {
         return columnNames[column];
@@ -53,11 +46,7 @@ public class ArgumentMetadataTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        if (procedure == null || procedure.getArguments() == null || procedure.getArguments().isEmpty()) {
-            return null;
-        }
-
-        ArgumentMetadata argument = procedure.getArguments().get(rowIndex);
+        CustomTypeArgumentInfo argument = customTypeInfo.getArguments().get(rowIndex);
         Object value = null;
         switch (columnIndex) {
             case 0:
@@ -67,18 +56,15 @@ public class ArgumentMetadataTableModel extends AbstractTableModel {
                 value = argument.getDataType();
                 break;
             case 2:
-                value = argument.getInOut();
-                break;
-            case 3:
                 value = argument.getFieldName();
                 break;
-            case 4:
+            case 3:
                 value = argument.getFieldType();
                 break;
         }
         return value;
     }
-
+    
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         boolean result = false;
@@ -110,24 +96,24 @@ public class ArgumentMetadataTableModel extends AbstractTableModel {
 
         return result;
     }
-
+    
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        if (procedure == null || procedure.getArguments() == null || procedure.getArguments().isEmpty()) {
+        if (customTypeInfo == null || customTypeInfo.getArguments() == null || customTypeInfo.getArguments().isEmpty()) {
             return;
         }
 
-        ArgumentMetadata item = procedure.getArguments().get(rowIndex);
+        CustomTypeArgumentInfo item = customTypeInfo.getArguments().get(rowIndex);
         switch (columnIndex) {
-            case 3:
+            case 2:
                 item.setFieldName((String) aValue);
                 break;
-            case 4:
+            case 3:
                 item.setFieldType((String) aValue);
                 break;
         }
 
-        procedure.getArguments().set(rowIndex, item);
+        customTypeInfo.getArguments().set(rowIndex, item);
     }
 
 }
