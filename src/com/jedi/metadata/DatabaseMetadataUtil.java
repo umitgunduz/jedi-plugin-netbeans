@@ -6,13 +6,16 @@
 package com.jedi.metadata;
 
 import com.google.common.base.CaseFormat;
+import com.sun.org.apache.bcel.internal.generic.StoreInstruction;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -160,9 +163,33 @@ public class DatabaseMetadataUtil {
         }
     }
 
-    public static CustomTypeInfo getCustomType(Connection connection, ArgumentMetadata argument) throws SQLException {
-        String owner = argument.getCustomTypeOwner();
-        String typeName = argument.getCustomTypeName();
+    public static ProcedureMetadata getProcedureCustomTypes(Connection connection, ProcedureMetadata procedure) throws SQLException {
+        Map<String, CustomTypeInfo> customTypes = new HashMap<>();
+        for (ArgumentMetadata argument : procedure.getArguments()) {
+            if (argument.getCustomTypeName() != null && !argument.getCustomTypeName().isEmpty()) {
+                CustomTypeInfo customTypeInfo = getCustomType(connection, argument.getCustomTypeOwner(), argument.getCustomTypeName());
+                String name;
+                if (customTypeInfo.isIsCollection()) {
+                    name = customTypeInfo.getCollectionElementType();
+                } else {
+                    name = customTypeInfo.getName();
+                }
+
+                if (!customTypes.containsKey(name)) {
+                    customTypes.put(name, customTypeInfo);
+                    findCustomTypeDependencies(connection, customTypeInfo, customTypes);
+                }
+            }
+        }
+        
+        if (!customTypes.isEmpty()){
+            procedure.setCustomTypes(customTypes);
+        }
+
+        return procedure;
+    }
+
+    public static CustomTypeInfo getCustomType(Connection connection, String owner, String typeName) throws SQLException {
         CustomTypeInfo customTypeInfo = null;
         String sql = "SELECT OWNER,"
                 + "       TYPE_NAME,"
@@ -244,7 +271,27 @@ public class DatabaseMetadataUtil {
 
             }
         }
-        
+
         return customTypeInfo;
+    }
+
+    public static void findCustomTypeDependencies(Connection connection, CustomTypeInfo parent, Map<String, CustomTypeInfo> found) throws SQLException {
+        for (CustomTypeArgumentInfo argument : parent.getArguments()) {
+            if (argument.isIsCustomObject()) {
+                String dataType = argument.getDataType();
+                CustomTypeInfo customTypeInfo = getCustomType(connection, argument.getDataTypeOwner(), argument.getDataType());
+                String name;
+                if (customTypeInfo.isIsCollection()) {
+                    name = customTypeInfo.getCollectionElementType();
+                } else {
+                    name = customTypeInfo.getName();
+                }
+
+                if (!found.containsKey(name)) {
+                    found.put(name, parent);
+                    findCustomTypeDependencies(connection, customTypeInfo, found);
+                }
+            }
+        }
     }
 }

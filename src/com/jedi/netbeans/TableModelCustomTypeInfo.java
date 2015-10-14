@@ -13,24 +13,21 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author EXT0104423
  */
-public class CustomTypeInfoTableModel extends AbstractTableModel {
+public class TableModelCustomTypeInfo extends AbstractTableModel {
 
-    private final String[] columnNames = {"Argument Name", "Data Type", "Field Name", "Field Type", ""};
+    private final String[] columnNames = {"Argument Name", "Data Type", "Field Name", "Field Type"};
     private final CustomTypeInfo customTypeInfo;
 
-    public CustomTypeInfoTableModel(CustomTypeInfo customTypeInfo) {
+    public TableModelCustomTypeInfo(CustomTypeInfo customTypeInfo) {
         this.customTypeInfo = customTypeInfo;
     }
 
     @Override
     public int getRowCount() {
         int result = 0;
-        if (customTypeInfo != null) {
-            if (customTypeInfo.getArguments() != null && !customTypeInfo.getArguments().isEmpty()) {
-                result = customTypeInfo.getArguments().size();
-            }
+        if (customTypeInfo != null && customTypeInfo.getArguments() != null && !customTypeInfo.getArguments().isEmpty()) {
+            result = customTypeInfo.getArguments().size();
         }
-
         return result;
     }
 
@@ -38,7 +35,7 @@ public class CustomTypeInfoTableModel extends AbstractTableModel {
     public int getColumnCount() {
         return columnNames.length;
     }
-    
+
     @Override
     public String getColumnName(int column) {
         return columnNames[column];
@@ -46,6 +43,10 @@ public class CustomTypeInfoTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
+        if (customTypeInfo == null || customTypeInfo.getArguments() == null || customTypeInfo.getArguments().isEmpty()) {
+            return null;
+        }
+
         CustomTypeArgumentInfo argument = customTypeInfo.getArguments().get(rowIndex);
         Object value = null;
         switch (columnIndex) {
@@ -64,15 +65,15 @@ public class CustomTypeInfoTableModel extends AbstractTableModel {
         }
         return value;
     }
-    
+
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         boolean result = false;
         String dataType = (String) this.getValueAt(rowIndex, 1);
         switch (columnIndex) {
-            case 3:
+            case 2:
                 result = true;
-            case 4:
+            case 3:
                 switch (dataType) {
                     case "OBJECT":
                     case "TABLE":
@@ -83,20 +84,11 @@ public class CustomTypeInfoTableModel extends AbstractTableModel {
                         break;
                 }
                 break;
-            case 5:
-                switch (dataType) {
-                    case "OBJECT":
-                    case "TABLE":
-                    case "REF CURSOR":
-                        result = true;
-                        break;
-                }
-                break;
         }
 
         return result;
     }
-    
+
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         if (customTypeInfo == null || customTypeInfo.getArguments() == null || customTypeInfo.getArguments().isEmpty()) {

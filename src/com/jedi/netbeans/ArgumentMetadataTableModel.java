@@ -15,7 +15,7 @@ import javax.swing.table.AbstractTableModel;
  */
 public class ArgumentMetadataTableModel extends AbstractTableModel {
 
-    private final String[] columnNames = {"Argument Name", "Data Type", "Argument Type", "Field Name", "Field Type", ""};
+    private final String[] columnNames = {"Argument Name", "Data Type", "Argument Type", "Field Name", "Field Type"};
     private final ProcedureMetadata procedure;
     
     public ArgumentMetadataTableModel(ProcedureMetadata procedure) {

@@ -5,6 +5,7 @@
  */
 package com.jedi.netbeans;
 
+import com.jedi.metadata.ProcedureMetadata;
 import javax.swing.event.ChangeListener;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
@@ -28,7 +29,7 @@ public class CreationWizardPanel3 implements WizardDescriptor.Panel<WizardDescri
         }
         return component;
     }
-
+    
     @Override
     public HelpCtx getHelp() {
         // Show no Help button for this panel:
@@ -36,7 +37,7 @@ public class CreationWizardPanel3 implements WizardDescriptor.Panel<WizardDescri
         // If you have context help:
         // return new HelpCtx("help.key.here");
     }
-
+    
     @Override
     public boolean isValid() {
         // If it is always OK to press Next or Finish, then:
@@ -46,23 +47,25 @@ public class CreationWizardPanel3 implements WizardDescriptor.Panel<WizardDescri
         // use ChangeSupport to implement add/removeChangeListener below.
         // WizardDescriptor.ERROR/WARNING/INFORMATION_MESSAGE will also be useful.
     }
-
+    
     @Override
     public void addChangeListener(ChangeListener l) {
     }
-
+    
     @Override
     public void removeChangeListener(ChangeListener l) {
     }
-
+    
     @Override
     public void readSettings(WizardDescriptor wiz) {
         // use wiz.getProperty to retrieve previous panel state
+        ProcedureMetadata procedureMetadata = (ProcedureMetadata) wiz.getProperty("Procedure");
+        this.getComponent().loadCustomTypes(procedureMetadata);
     }
-
+    
     @Override
     public void storeSettings(WizardDescriptor wiz) {
         // use wiz.putProperty to remember current panel state
     }
-
+    
 }

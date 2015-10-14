@@ -6,6 +6,7 @@
 package com.jedi.metadata;
 
 import java.util.List;
+import java.util.Map;
 import org.netbeans.api.db.explorer.DatabaseConnection;
 
 /**
@@ -19,6 +20,7 @@ public class ProcedureMetadata extends AbstractMetadata{
     private String procedureType;
     private List<ArgumentMetadata> arguments;
     private DatabaseConnection databaseConnection;
+    private Map<String,CustomTypeInfo> customTypes;
 
     public long getPackageId() {
         return packageId;
@@ -67,6 +69,16 @@ public class ProcedureMetadata extends AbstractMetadata{
     public void setDatabaseConnection(DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection;
     }
+
+    public Map<String, CustomTypeInfo> getCustomTypes() {
+        return customTypes;
+    }
+
+    public void setCustomTypes(Map<String, CustomTypeInfo> customTypes) {
+        this.customTypes = customTypes;
+    }
+
+    
 
     
 
